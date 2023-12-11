@@ -1,4 +1,4 @@
-import { cart, removeFromCart, calculateCartQuantity, updateQuantity } from "../data/cart.js";
+import { cart, removeFromCart, calculateCartQuantity, updateQuantity, updateDeliveryOption} from "../data/cart.js";
 import { products } from "../data/products.js";
 import { formatCurrency } from "./utils/money.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
@@ -26,8 +26,7 @@ cart.forEach((cartItem)=>{
 
     const today = dayjs();
     const delivaryDate = today.add(deliveryOption.deliveryDays,'days');
-    const dateString = delivaryDate.format('dddd,MMMM D');
-    const priceString = deliveryOption.priceCents === 0 ? 'FREE' : `${formatCurrency(deliveryOption.priceCents)} -`;
+    const dateString = delivaryDate.format('dddd, MMMM D');
 
     cartSummaryHTML+=`
     <div class="cart-item-container js-cart-item-container-${matchingProduct.id}">
@@ -79,13 +78,15 @@ function deliveryOptionHTML(matchingProduct,cartItem){
 
         const today = dayjs();
         const delivaryDate = today.add(deliveryOption.deliveryDays,'days');
-        const dateString = delivaryDate.format('dddd,MMMM D');
-        const priceString = deliveryOption.priceCents === 0 ? 'FREE' : `${formatCurrency(deliveryOption.priceCents)} -`;
+        const dateString = delivaryDate.format('dddd, MMMM D');
+        const priceString = deliveryOption.priceCents === 0 ? 'FREE' : `$${formatCurrency(deliveryOption.priceCents)} -`;
 
         const isChecked = deliveryOption.id === cartItem.deliveryOptionId;
 
-        HTML+=`
-        <div class="delivery-option">
+        HTML += `
+        <div class="delivery-option js-delivery-option"
+        data-product-id="${matchingProduct.id}"
+        data-delivery-option-id="${deliveryOption.id}">
             <input type="radio"
                 ${isChecked ? 'checked' : ''}
             class="delivery-option-input"
@@ -95,7 +96,7 @@ function deliveryOptionHTML(matchingProduct,cartItem){
                 ${dateString}
             </div>
             <div class="delivery-option-price">
-                $${priceString} Shipping
+                ${priceString} Shipping
             </div>
             </div>
         </div>
@@ -103,8 +104,6 @@ function deliveryOptionHTML(matchingProduct,cartItem){
     });
     return HTML;
 };
-
-
 
 document.querySelector('.js-order-summary').innerHTML=cartSummaryHTML;
 
@@ -152,4 +151,12 @@ document.querySelectorAll('.js-save-quantity-link')
         document.querySelector(`.js-quantity-label-${productId}`).innerHTML=newQuantity;
         updateCartQuantity();
     });
+ });
+
+document.querySelectorAll('.js-delivery-option')
+ .forEach((elememt)=>{
+    elememt.addEventListener('click',()=>{
+        const {productId, deliveryOptionId} = elememt.dataset;
+        updateDeliveryOption(productId, deliveryOptionId);
+    })
  });
